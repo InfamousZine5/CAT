@@ -1,0 +1,17 @@
+Category,Item,Attribute,Value
+backbrakes,back,condition,
+backbrakes,back,fluid,
+battery,battery,condition,good
+brakes,front,condition,good
+brakes,front,condition,bad
+engine,engine,condition,excellent
+exterior,exterior,condition,excellent
+frontbrakes,front,fluid,
+tyres,leftfront,pressure,
+tyres,leftfront,condition,
+tyres,rightfront,pressure,
+tyres,rightfront,condition,
+tyres,leftback,pressure,
+tyres,leftback,condition,
+tyres,rightback,pressure,
+tyres,rightback,condition,

@@ -1,13 +1,13 @@
 import streamlit as st
-import requests
+import datetime
+import geocoder
+import cv2
 import speech_recognition as sr
 import pyttsx3
-import pandas as pd
-import os
 import csv
-import objc
+import os
 
-# Function to record voice command
+# Function to record voice command and write to voice_commands.txt
 def record_text():
     r = sr.Recognizer()
     with sr.Microphone() as source:
@@ -18,6 +18,11 @@ def record_text():
         try:
             st.write("Recognizing...")
             text = r.recognize_google(audio)
+            
+            # Write to voice_commands.txt
+            with open('voice_commands.txt', 'a') as file:
+                file.write(f"{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}: {text}\n")
+            
             return text
         except sr.RequestError as e:
             st.write(f"Could not request results; {e}")
@@ -31,21 +36,25 @@ def speak_text(text):
     engine.say(text)
     engine.runAndWait()
 
-# Function to send command to backend server (simulated)
-def send_command_to_server(command):
-    # Simulate sending command to a backend server
-    return {'message': f"Command '{command}' received."}
-
-# Function to parse the voice command
+# Function to parse the voice command and categorize
 def parse_command(command):
     words = command.lower().split()
     if len(words) < 3:
         return None
     
     position = words[0] + ' ' + words[1]
-    action = ' '.join(words[2:])
-    
-    return (position, action)
+    keyword = words[2]
+
+    value_map = {
+        'excellent': 2,
+        'good': 1,
+        'bad': 0
+    }
+
+    if keyword in value_map:
+        return (position, value_map[keyword])
+    else:
+        return None
 
 # Function to save inspection data to CSV
 def save_inspection_data_to_csv(inspection_data):
@@ -107,23 +116,26 @@ def main():
             parsed_command = parse_command(command)
             if parsed_command:
                 st.write(f"Parsed Command: {parsed_command}")
-                position, action = parsed_command
-                response = send_command_to_server(command)
-                st.write(response['message'])
-                # Update inspection data based on the response if necessary
-                # Example update
+                position, value = parsed_command
+                response = f"Command '{command}' received and parsed."
+                st.write(response)
+                
                 category, item = position.split()
                 if category in st.session_state.inspection_data:
                     if item not in st.session_state.inspection_data[category]:
-                        st.session_state.inspection_data[category][item] = {'action': action}
+                        st.session_state.inspection_data[category][item] = {'condition': value}
                     else:
-                        st.session_state.inspection_data[category][item]['action'] = action
+                        st.session_state.inspection_data[category][item]['condition'] = value
             else:
-                st.write("Invalid command format. Please try again.")
+                st.write("Invalid command format or keyword not recognized. Please try again.")
         else:
             st.write("No command recorded. Please speak clearly.")
     else:
         st.write("Start Inspection to enable voice command recording.")
+
+# Check if voice_commands.txt exists; if not, create it
+if not os.path.exists('voice_commands.txt'):
+    with open('voice_commands.txt', 'w'): pass
 
 if __name__ == '__main__':
     main()
