@@ -4,6 +4,8 @@ import speech_recognition as sr
 import pyttsx3
 import pandas as pd
 import os
+import csv
+import objc
 
 # Function to record voice command
 def record_text():
@@ -29,11 +31,10 @@ def speak_text(text):
     engine.say(text)
     engine.runAndWait()
 
-# Function to send command to backend server
+# Function to send command to backend server (simulated)
 def send_command_to_server(command):
-    url = 'http://localhost:5001/voice-command'  # Backend server URL
-    response = requests.post(url, json={'command': command})
-    return response.json()
+    # Simulate sending command to a backend server
+    return {'message': f"Command '{command}' received."}
 
 # Function to parse the voice command
 def parse_command(command):
@@ -47,21 +48,21 @@ def parse_command(command):
     return (position, action)
 
 # Function to save inspection data to CSV
-def save_inspection_data_to_csv():
-    # Flatten the inspection data dictionary
-    flattened_data = []
-    for category, items in st.session_state.inspection_data.items():
-        for item, attributes in items.items():
-            for attribute, value in attributes.items():
-                flattened_data.append([category, item, attribute, value])
-    
-    # Create a DataFrame
-    df = pd.DataFrame(flattened_data, columns=["Category", "Item", "Attribute", "Value"])
-    
-    # Save to CSV
-    df.to_csv("inspection_data.csv", index=False)
-    
-    st.write("Inspection data saved to inspection_data.csv")
+def save_inspection_data_to_csv(inspection_data):
+    csv_columns = ['Category', 'Item', 'Attribute', 'Value']
+    csv_file = "inspection_data.csv"
+
+    try:
+        with open(csv_file, 'w', newline='') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=csv_columns)
+            writer.writeheader()
+            for category, items in inspection_data.items():
+                for item, attributes in items.items():
+                    for attribute, value in attributes.items():
+                        writer.writerow({'Category': category, 'Item': item, 'Attribute': attribute, 'Value': value})
+        st.write("Inspection data saved to inspection_data.csv")
+    except IOError:
+        st.write("I/O error")
 
 # Main Streamlit application
 def main():
@@ -69,7 +70,7 @@ def main():
 
     if 'inspection_data' not in st.session_state:
         st.session_state.inspection_data = {
-            'tires': {
+            'tyres': {
                 'leftFront': {'pressure': '', 'condition': ''},
                 'rightFront': {'pressure': '', 'condition': ''},
                 'leftRear': {'pressure': '', 'condition': ''},
@@ -87,45 +88,42 @@ def main():
         st.session_state.listening = True
         st.write("Listening for voice commands...")
 
+    # End Inspection Button
+    if st.button("End Inspection"):
+        st.session_state.listening = False
+        save_inspection_data_to_csv(st.session_state.inspection_data)
+        st.write("Stopped listening and saved inspection data.")
+    
     # Display Inspection Data
     st.write("Current Inspection Data:")
     st.write(st.session_state.inspection_data)
 
     # Voice Command Recording
-    if st.button("Record Command"):
-        if st.session_state.get('listening', False):
-            command = record_text()
-            if command:
-                st.write(f"Recorded Command: {command}")
-                speak_text(f"Recorded: {command}")
-                parsed_command = parse_command(command)
-                if parsed_command:
-                    st.write(f"Parsed Command: {parsed_command}")
-                    position, action = parsed_command
-                    response = send_command_to_server(command)
-                    st.write(response['message'])
-                    # Update inspection data based on the response if necessary
-                    # Example update
-                    category, item = position.split()
-                    if category in st.session_state.inspection_data:
-                        if item not in st.session_state.inspection_data[category]:
-                            st.session_state.inspection_data[category][item] = {'action': action}
-                        else:
-                            st.session_state.inspection_data[category][item]['action'] = action
-                else:
-                    st.write("Invalid command format. Please try again.")
+    if st.session_state.get('listening', False):
+        command = record_text()
+        if command:
+            st.write(f"Recorded Command: {command}")
+            speak_text(f"Recorded: {command}")
+            parsed_command = parse_command(command)
+            if parsed_command:
+                st.write(f"Parsed Command: {parsed_command}")
+                position, action = parsed_command
+                response = send_command_to_server(command)
+                st.write(response['message'])
+                # Update inspection data based on the response if necessary
+                # Example update
+                category, item = position.split()
+                if category in st.session_state.inspection_data:
+                    if item not in st.session_state.inspection_data[category]:
+                        st.session_state.inspection_data[category][item] = {'action': action}
+                    else:
+                        st.session_state.inspection_data[category][item]['action'] = action
             else:
-                st.write("No command recorded. Please speak clearly.")
+                st.write("Invalid command format. Please try again.")
         else:
-            st.write("Start Inspection to enable voice command recording.")
-
-    # Handle Stop Listening
-    if st.button("Stop Listening"):
-        st.session_state.listening = False
-        st.write("Stopped listening for voice commands.")
-
-    if st.button("Save Inspection Data to CSV"):
-        save_inspection_data_to_csv()
+            st.write("No command recorded. Please speak clearly.")
+    else:
+        st.write("Start Inspection to enable voice command recording.")
 
 if __name__ == '__main__':
     main()
