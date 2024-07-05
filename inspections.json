@@ -1,0 +1,16 @@
+[
+  {
+    "inspectionId": 1,
+    "truckSerialNumber": "7301234",
+    "truckModel": "730",
+    "inspectorName": "John Doe",
+    "inspectionEmployeeId": "EMP123",
+    "dateTimeOfInspection": "2024-07-05T14:48:00.000Z",
+    "locationOfInspection": "Factory A",
+    "geoCoordinates": "51.5074,-0.1278",
+    "serviceMeterHours": "15000",
+    "inspectorSignature": "John Doe",
+    "customerName": "ACME Corp",
+    "catCustomerId": "CAT123"
+  }
+]

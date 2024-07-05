@@ -1,0 +1,12 @@
+[
+    {
+        "inspectorId": "inspector1",
+        "inspectorPassword": "password1",
+        "inspectorName": "John Doe"
+    },
+    {
+        "inspectorId": "inspector2",
+        "inspectorPassword": "password2",
+        "inspectorName": "Jane Smith"
+    }
+]
