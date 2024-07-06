@@ -15,7 +15,7 @@ def main():
     st.title("Inspector's Inspection")
 
     # Load inspection status from CSV
-    csv_file = 'inspection_status.csv'  # Adjust the file path as necessary
+    csv_file = 'merged_output.csv'  # Adjust the file path as necessary
     try:
         inspection_data = load_inspection_status(csv_file)
     except FileNotFoundError as e:
