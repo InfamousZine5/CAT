@@ -8,10 +8,11 @@ import pyttsx3
 import csv
 import pandas as pd
 import streamlit as st
+import pyaudio
 
 # Simulate a simple user database
 USER_DB = {
-    "1": "x",
+    "abc": "x",
     "Inspector2": "password2",
 }
 
@@ -20,9 +21,8 @@ class QRCodeProcessor:
         self.qr_code = None
 
     def scan_qr_code(self):
-        st.title("Inspector ID Input")
-        st.write("Please enter your Inspector ID.")
-        inspector_id = st.text_input("Inspector ID")
+        st.title("Please enter the Serial Number.")
+        inspector_id = st.text_input("Serial Number")
 
         if st.button("Submit"):
             if inspector_id:
@@ -46,7 +46,7 @@ def login():
             st.error("Invalid username or password")
 
 def main_page():
-    st.title("Main Page")
+    st.title("Inspection Details:")
     st.write(f"Welcome, {st.session_state['username']}!")
 
     # Logout button
@@ -55,7 +55,7 @@ def main_page():
         st.experimental_rerun()
 
     # Display the obtained information
-    st.markdown(f"**Inspector ID:** {st.session_state.get('inspector_id', '')}")
+    st.markdown(f"**Serial Number:** {st.session_state.get('inspector_id', '')}")
     st.markdown(f"**Date and Time:** {st.session_state.get('timestamp', '')}")
     st.markdown(f"**Location:** {st.session_state.get('location', '')}")
 
