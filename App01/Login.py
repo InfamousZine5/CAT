@@ -2,9 +2,7 @@ import streamlit as st
 import datetime
 import geocoder
 import cv2
-from streamlit_webrtc import webrtc_streamer, VideoProcessorBase, ClientSettings
-import av
-import os
+import subprocess
 
 # Simulate a simple user database
 USER_DB = {
@@ -12,25 +10,22 @@ USER_DB = {
     "Inspector2": "password2",
 }
 
-class QRCodeProcessor(VideoProcessorBase):
+class QRCodeProcessor:
     def __init__(self):
         self.qr_code = None
 
-    def recv(self, frame):
-        img = frame.to_ndarray(format="bgr24")
-        detector = cv2.QRCodeDetector()
-        data, bbox, _ = detector.detectAndDecode(img)
+    def scan_qr_code(self):
+        st.title("Inspector ID Input")
+        st.write("Please enter your Inspector ID.")
+        inspector_id = st.text_input("Inspector ID")
 
-        if bbox is not None:
-            if data:
-                self.qr_code = data
-                st.session_state['inspector_id'] = data
+        if st.button("Submit"):
+            if inspector_id:
+                st.session_state['inspector_id'] = inspector_id
                 st.session_state['timestamp'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 g = geocoder.ip('me')
                 st.session_state['location'] = g.latlng
                 st.experimental_rerun()
-
-        return av.VideoFrame.from_ndarray(img, format="bgr24")
 
 def login():
     st.title("Login Page")
@@ -44,19 +39,6 @@ def login():
             st.experimental_rerun()
         else:
             st.error("Invalid username or password")
-
-def scan_qr_code():
-    st.title("Inspector ID Input")
-    st.write("Please enter your Inspector ID.")
-    inspector_id = st.text_input("Inspector ID")
-
-    if st.button("Submit"):
-        if inspector_id:
-            st.session_state['inspector_id'] = inspector_id
-            st.session_state['timestamp'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            g = geocoder.ip('me')
-            st.session_state['location'] = g.latlng
-            st.experimental_rerun()
 
 def main_page():
     st.title("Main Page")
@@ -84,7 +66,6 @@ def main_page():
 
     if st.button("Start Inspection", key="start_inspection"):
         st.session_state['show_inspection_page'] = True
-        inspection_page()
 
 def inspection_page():
     st.title("Inspection Page")
@@ -124,6 +105,25 @@ def inspection_page():
         if st.button("Next Page"):
             st.session_state['current_page'] = min(len(pages) - 1, current_page + 1)
 
+    # Start Inspection Script button
+    if st.session_state['show_inspection_page']:
+        start_inspection_script()
+
+def start_inspection_script():
+    st.title("Start Inspection")
+    st.write("Click the button below to start the inspection.")
+
+    if st.button("Run Inspection"):
+        st.write("Starting the inspection...")
+        process = subprocess.Popen(['python3', 'inp.py'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = process.communicate()
+        
+        if stderr:
+            st.error(f"Error running script: {stderr.decode()}")
+        else:
+            st.write("Script executed successfully.")
+            st.code(stdout.decode())
+
 if __name__ == "__main__":
     if 'logged_in' not in st.session_state:
         st.session_state['logged_in'] = False
@@ -141,7 +141,8 @@ if __name__ == "__main__":
     if not st.session_state['logged_in']:
         login()
     elif st.session_state['inspector_id'] is None:
-        scan_qr_code()
+        qr_processor = QRCodeProcessor()
+        qr_processor.scan_qr_code()
     elif st.session_state['show_inspection_page']:
         inspection_page()
     else:

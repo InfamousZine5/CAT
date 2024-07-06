@@ -1,0 +1,15 @@
+Category,Item,Attribute,Value
+battery,,,good
+battery,,,good
+battery,,,good
+engine,,,bad
+engine,,,bad
+engine,,,bad
+tyres,leftFront,pressure,
+tyres,leftFront,condition,
+tyres,rightFront,pressure,
+tyres,rightFront,condition,
+tyres,leftRear,pressure,
+tyres,leftRear,condition,
+tyres,rightRear,pressure,
+tyres,rightRear,condition,
